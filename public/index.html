@@ -50,6 +50,34 @@ footer strong{color:#d6b77b;letter-spacing:4px}
  .product img{height:300px}
  section{padding:48px 6%}
 }
+ .checkout-form{
+  display:none;
+  margin-top:25px;
+  border-top:1px solid #ddd;
+  padding-top:20px;
+}
+.checkout-form input,
+.checkout-form textarea{
+  width:100%;
+  padding:12px;
+  margin:7px 0 12px;
+  border:1px solid #ccc;
+  font:14px Arial;
+}
+.checkout-form textarea{
+  min-height:85px;
+}
+.checkout-form button{
+  width:100%;
+  padding:14px;
+  background:#171717;
+  color:white;
+  border:0;
+}
+#orderMessage{
+  margin-top:15px;
+  line-height:1.6;
+}
 </style>
 </head>
 <body>
@@ -119,38 +147,125 @@ footer strong{color:#d6b77b;letter-spacing:4px}
   <div id="cartItems">Your bag is empty.</div>
   <h3 id="total" style="margin:20px 0">Total: Rs. 0</h3>
   <button class="gold-btn" style="width:100%" onclick="checkout()">PROCEED TO CHECKOUT</button>
+ <form id="checkoutForm" class="checkout-form" onsubmit="placeOrder(event)">
+  <h3>Delivery Details</h3>
+
+  <input type="text" id="customerName" placeholder="Full Name" required>
+
+  <input type="tel" id="phone" placeholder="Phone Number" required>
+
+  <input type="text" id="city" placeholder="City" required>
+
+  <textarea id="address" placeholder="Complete Delivery Address" required></textarea>
+
+  <p>Payment Method: <strong>Cash on Delivery</strong></p>
+
+  <button type="submit" id="placeOrderBtn">PLACE ORDER</button>
+
+  <p id="orderMessage"></p>
+</form>
 </div>
 
 <script>
-let cart=[];
-function addToCart(name,price){
- cart.push({name,price});
- document.getElementById('count').innerText=cart.length;
- alert(name+' added to your bag!');
+let cart = [];
+
+function addToCart(name, price) {
+  cart.push({ name, price });
+  document.getElementById("count").innerText = cart.length;
+  renderCart();
+  alert(name + " added to your bag!");
 }
-function openCart(){
- document.getElementById('cartPanel').style.display='block';
- renderCart();
+
+function openCart() {
+  document.getElementById("cartPanel").style.display = "block";
+  renderCart();
 }
-function closeCart(){
- document.getElementById('cartPanel').style.display='none';
+
+function closeCart() {
+  document.getElementById("cartPanel").style.display = "none";
 }
-function renderCart(){
- let items=document.getElementById('cartItems');
- let total=cart.reduce((s,p)=>s+p.price,0);
- items.innerHTML=cart.length?cart.map((p,i)=>
- `<p>${p.name} — Rs. ${p.price.toLocaleString()} <button onclick="removeItem(${i})">Remove</button></p>`
- ).join(''):'Your bag is empty.';
- document.getElementById('total').innerText='Total: Rs. '+total.toLocaleString();
+
+function renderCart() {
+  const items = document.getElementById("cartItems");
+  const total = cart.reduce((s, p) => s + p.price, 0);
+
+  items.innerHTML = cart.length
+    ? cart.map((p, i) =>
+      `<p>${p.name} — Rs. ${p.price.toLocaleString()}
+      <button onclick="removeItem(${i})">Remove</button></p>`
+    ).join("")
+    : "Your bag is empty.";
+
+  document.getElementById("total").innerText =
+    "Total: Rs. " + total.toLocaleString();
 }
-function removeItem(i){
- cart.splice(i,1);
- document.getElementById('count').innerText=cart.length;
- renderCart();
+
+function removeItem(i) {
+  cart.splice(i, 1);
+  document.getElementById("count").innerText = cart.length;
+  renderCart();
 }
-function checkout(){
- if(!cart.length){alert('Your bag is empty.');return;}
- alert('Our secure checkout and Cash on Delivery order system will be connected in the next setup step.');
+
+function checkout() {
+  if (!cart.length) {
+    alert("Your bag is empty.");
+    return;
+  }
+
+  document.getElementById("checkoutForm").style.display = "block";
+  document.getElementById("checkoutForm").scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+}
+
+async function placeOrder(event) {
+  event.preventDefault();
+
+  if (!cart.length) return;
+
+  const button = document.getElementById("placeOrderBtn");
+  const message = document.getElementById("orderMessage");
+
+  button.disabled = true;
+  button.innerText = "PLACING ORDER...";
+  message.innerText = "";
+
+  const order = {
+    customer_name: document.getElementById("customerName").value.trim(),
+    phone: document.getElementById("phone").value.trim(),
+    city: document.getElementById("city").value.trim(),
+    address: document.getElementById("address").value.trim(),
+    items: cart.map(item => ({ name: item.name }))
+  };
+
+  try {
+    const response = await fetch("/api/order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(order)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Order could not be placed.");
+    }
+
+    message.innerText =
+      "Thank you! Your order is confirmed. Order ID: " + result.order_id;
+
+    cart = [];
+    document.getElementById("count").innerText = "0";
+    document.getElementById("checkoutForm").reset();
+    renderCart();
+
+  } catch (error) {
+    message.innerText = error.message || "Something went wrong. Please try again.";
+  } finally {
+    button.disabled = false;
+    button.innerText = "PLACE ORDER";
+  }
 }
 </script>
 </body>
