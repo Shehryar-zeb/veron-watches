@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "veron-watches",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-11-17",
+  "assets": {
+    "directory": "./",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "veron-orders",
+      "database_id": "68cf1334-232c-4855-98af-86c8a8d38cf3"
+    }
+  ]
+}
