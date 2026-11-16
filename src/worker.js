@@ -81,16 +81,13 @@ export default {
       }
     }
 
-    if (url.pathname.startsWith("/admin")) {
-  return new Response("ADMIN TEST WORKING", {
-    status: 200,
-    headers: { "Content-Type": "text/plain" }
-  });
-}
-  return new Response("VÉRON Admin Panel - Login Coming Soon", {
-    headers: { "Content-Type": "text/plain" }
-  });
-}
+       if (url.pathname.startsWith("/admin")) {
+      return new Response("ADMIN TEST WORKING", {
+        status: 200,
+        headers: { "Content-Type": "text/plain" }
+      });
+    }
+
     return env.ASSETS.fetch(request);
   }
 };
