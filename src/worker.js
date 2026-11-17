@@ -148,3 +148,6 @@ if (url.pathname === "/admin/login" && request.method === "POST") {
     headers: { "Content-Type": "text/html; charset=UTF-8" }
   });
 }
+        return env.ASSETS.fetch(request);
+  }
+};
